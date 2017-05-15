@@ -4,6 +4,8 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
 using System.Collections.Generic;
+using Sefin.AnacenImporter;
+using Sefin.ServiceTool.Common;
 
 namespace Sefin.ServiceTool
 {
@@ -60,11 +62,15 @@ namespace Sefin.ServiceTool
 
         protected void Process()
         {
+            var orchestrator = new ImportOrchestrator();
+
             Log("  - Starting process -");
             while (true)
             {
                 Log("  Performing...-");
-                //....
+
+                orchestrator.Process();
+
                 Thread.Sleep(2000);
                 if (!_continue) return;
             }

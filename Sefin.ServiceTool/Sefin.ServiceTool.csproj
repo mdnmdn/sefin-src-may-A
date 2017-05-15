@@ -104,7 +104,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceLogger.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -165,6 +164,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.api.logo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sefin.AnacenImporter\Sefin.AnacenImporter.csproj">
+      <Project>{effc8b0a-c93f-4ccd-ac66-4f1a0ff3c6ac}</Project>
+      <Name>Sefin.AnacenImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sefin.ServiceTool.Common\Sefin.ServiceTool.Common.csproj">
+      <Project>{c725be74-1b46-4956-ac97-3c2fb5c3cd7e}</Project>
+      <Name>Sefin.ServiceTool.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
