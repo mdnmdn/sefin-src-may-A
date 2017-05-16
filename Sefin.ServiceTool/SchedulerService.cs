@@ -53,7 +53,9 @@ namespace Sefin.ServiceTool
         protected override void OnStop()
         {
             _continue = false;
+            //_thread.Join();
             _thread.Join(_joinTimeMs);
+
             if (_thread.ThreadState != ThreadState.Stopped) { 
                 _thread.Abort();
                 _thread.Join(_joinTimeMs);
@@ -63,17 +65,26 @@ namespace Sefin.ServiceTool
         protected void Process()
         {
             var orchestrator = new ImportOrchestrator();
+            orchestrator.SetLogger(ServiceLogger.Instance);
 
             Log("  - Starting process -");
             while (true)
             {
-                Log("  Performing...-");
+                Log("  Performing...");
 
                 orchestrator.Process();
 
                 Thread.Sleep(2000);
-                if (!_continue) return;
+
+                //throw new Exception("Error!!!");
+
+                if (!_continue) break;
             }
+
+
+
+            //Thread.Sleep(40000);
+
             Log("  - Process completed -");
         }
 

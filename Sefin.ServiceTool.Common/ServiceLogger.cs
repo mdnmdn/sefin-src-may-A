@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Sefin.ServiceTool.Common
 {
-    public class ServiceLogger
+    public class ServiceLogger: ILogger
     {
 
         #region Singleton
