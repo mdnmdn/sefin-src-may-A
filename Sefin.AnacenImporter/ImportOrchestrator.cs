@@ -14,9 +14,11 @@ namespace Sefin.AnacenImporter
 
         object _lock = new object();
 
-        int _numTheadRunning = 0;
+        HashSet<string> _companyRegistry = new HashSet<string>();
 
-        const int MaxConcurrentThread = 3;
+        int _numRunningThreads = 0;
+
+        const int MaxConcurrentThread = 30;
 
         ILogger _logger;
 
@@ -30,21 +32,26 @@ namespace Sefin.AnacenImporter
         {
             try
             {
-                if (_numTheadRunning >= MaxConcurrentThread) return;
+                if (_numRunningThreads >= MaxConcurrentThread) return;
 
                 var files = ListFilesToProcess();
 
                 if (files.Length > 0)
                 {
-                    Log("File da processare: " + String.Join(", ", files));
+                    //Log("File da processare: " + String.Join(", ", files));
 
                     foreach(var file in files)
                     {
-                        if (_numTheadRunning >= MaxConcurrentThread) return;
+                        if (_numRunningThreads >= MaxConcurrentThread) return;
+                        
+                        var fileInfo = PreprocessImportFile(file);
+
+                        // salta il file se la company è già in elaborazione
+                        if (_companyRegistry.Contains(fileInfo.Company)) continue;
 
                         LogThreads();
 
-                        StartProcess(file);
+                        StartProcess(fileInfo);
                     }
                 }
             }catch(Exception ex)
@@ -54,20 +61,22 @@ namespace Sefin.AnacenImporter
 
         }
 
-        private void StartProcess(string file)
-        {
-            var stagingFilePath = Tools.MoveFileToFolder(file, ServiceConfiguration.Instance.StagingFilePath);
+        
 
+        private void StartProcess(ImportFileInfo file)
+        {
+            file.MoveToFolder(ServiceConfiguration.Instance.StagingFilePath);
+            
             //Log("Sposto il file in " + stagingFilePath);
 
-            var importer = new FileImporter(stagingFilePath);
+            var importer = new FileImporter(file);
             importer.SetLogger(_logger);
 
             var processingThread = new Thread(() =>
             {
                 try
                 {
-                    importer.Process();
+                    importer.Import();
                 }catch(Exception ex)
                 {
                     Log("Errore su thread");
@@ -76,30 +85,49 @@ namespace Sefin.AnacenImporter
                 {
                     lock (_lock)
                     {
-                        _numTheadRunning--;
+                        _numRunningThreads--;
+                        _companyRegistry.Remove(file.Company);
                     }
+
+                    //Interlocked.Decrement(ref _numRunningThreads);
+                    
                     LogThreads();
                 }
             });
 
             lock (_lock)
             {
-                _numTheadRunning++;
+                _numRunningThreads++;
+                _companyRegistry.Add(file.Company);
             }
+
+            //Interlocked.Increment(ref _numRunningThreads);
+
 
             processingThread.Start();
 
         }
 
+        private ImportFileInfo PreprocessImportFile(string fullPath)
+        {
+            var path = Path.GetDirectoryName(fullPath);
+            var companyFolder = Path.GetFileName(path);
+            return new ImportFileInfo
+            {
+                FullPath = fullPath,
+                Company = companyFolder
+            };
+        }
+
         private void LogThreads()
         {
-            Log("Thread attivi: " + _numTheadRunning);
+            Log("Thread attivi: " + _numRunningThreads);
         }
 
         private string[] ListFilesToProcess()
         {
             var filePath = ServiceConfiguration.Instance.ImportFilePath;
-            return Directory.GetFiles(filePath, "*.txt");
+            return Directory.GetFiles(filePath, "*.txt",SearchOption.AllDirectories);
         }
 
 

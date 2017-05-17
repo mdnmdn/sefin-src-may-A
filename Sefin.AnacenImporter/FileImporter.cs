@@ -10,43 +10,57 @@ namespace Sefin.AnacenImporter
 {
     public class FileImporter
     {
-        private string _filePath;
+        private ImportFileInfo _importFile;
 
+        private bool _requestStop = false;
         
 
-        public FileImporter(string filePath)
+        public FileImporter(ImportFileInfo importFile)
         {
-            _filePath = filePath;
+            _importFile = importFile;
         }
 
-        public void Process()
+        public void Import()
         {
-            var fileName = Path.GetFileName(_filePath);
+            
 
-            Log("Avvio importazione :" + fileName);
+            Log("Avvio importazione :" + _importFile);
             // System.Threading.Thread.Sleep(4000 + new Random().Next(40) * 1000);
 
-            if (new Random().Next(3) == 0)
-            {
-                Log("errore!!!!");
-                throw new CustomException("Errore!!");
-            }
-                    
+            //if (new Random().Next(3) == 0)
+            //{
+            //    Log("errore!!!!");
+            //    throw new CustomException("Errore!!");
+            //}
 
-            for(long i = 0; i < 100000L; i++)
+            for (long i = 0; i < 1000L; i++)
             {
-                for (long j = 0; j < 10000L; j++)
+                for (long j = 0; j < 1000000L; j++)
                 {
-                    var res = Math.Sqrt(i*j);
+                    var res = Math.Sqrt(i * j);
                 }
+
+                if (_requestStop) return;
+
+                //for (long j = 0; j < 5000L; j++)
+                //{
+                //    var res = Math.Sqrt(i * j);
+                //}
+                //System.Threading.Thread.Sleep(3);
             }
 
-            var stagingFilePath = Tools.MoveFileToFolder(_filePath, ServiceConfiguration.Instance.CompleteFilePath);
 
-            Log("Importazione completa :" + fileName);
+            _importFile.MoveToFolder(ServiceConfiguration.Instance.CompleteFilePath);
+
+            Log("Importazione completa :" + _importFile);
             // importa il file
         }
 
+
+        public void RequestStop()
+        {
+            _requestStop = true;
+        }
 
         #region logger 
 
